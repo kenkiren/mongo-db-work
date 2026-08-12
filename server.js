@@ -57,7 +57,12 @@ app.put("/users/:id", async(req,res)=>{
 });
 
 
+app.delete("/users/:id", async(req,res)=>{
 
+  const user=await User.findByIdAndDelete(req.params.id);
+  res.json(user);
+
+});
 
 
 
