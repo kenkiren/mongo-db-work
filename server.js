@@ -28,13 +28,39 @@ app.post("/users", async (req, res) => {
 
   res.json(user);
 });
-
+//get all user 
 app.get("/users", async(req,res)=>{
 
   const users= await User.find();
   res.json(users);
 
 });
+//getting one user
+app.get("/users/:id", async(req,res)=>{
+  const user= await User.findById(req.params.id);
+  res.json(user);
+});
+
+//update a user by id
+app.put("/users/:id", async(req,res)=>{
+  const user= await User.findByIdAndUpdate(
+    req.params.id,
+    {
+      name: req.body.name,
+      age: req.body.age,
+      email: req.body.email
+    },{new: true}  
+  );
+
+    res.json(user);
+
+});
+
+
+
+
+
+
 
 app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");
