@@ -1,8 +1,33 @@
 import express from "express";
 import mongoose from "mongoose";
 import "dotenv/config";
+
+
 const app=express();
+
+
+// function checkAuth(req,res,next){
+//   const loggedIn=false;
+//   if(!loggedIn){
+//     return res.status(401).json({
+//       message:"please login first"
+//     });
+//   }
+
+//   next();
+// }
+
+
+
+// function logger(req,res,next){
+//   console.log(req.method, req.url);
+//   next();
+// }
+
+// app.use(logger);
 app.use(express.json());
+
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log("MongoDB connected!");
@@ -18,6 +43,15 @@ const userSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model("User", userSchema);
+
+
+app.get("/profile", checkAuth,( req,res)=>{
+
+  res.json({
+    name: "dev",
+    message: "welcome bhai"
+  });
+});
 
 app.post("/users", async (req, res) => {
   const user = await User.create({
