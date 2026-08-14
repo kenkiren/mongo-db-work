@@ -37,30 +37,47 @@ mongoose.connect(process.env.MONGO_URI)
   });
 
 const userSchema = new mongoose.Schema({
-  name: String,
-  age: Number,
-  email: String
+  name: {
+    type: String,
+    required: true
+  },
+  age: {
+    type: Number,
+    required: true,
+    min:18
+  },
+  email: {
+    type: String,
+    required: true,
+    // match: /.+\@.+\..+/
+  }
 });
 
 const User = mongoose.model("User", userSchema);
 
 
-app.get("/profile", checkAuth,( req,res)=>{
+// app.get("/profile", checkAuth,( req,res)=>{
 
-  res.json({
-    name: "dev",
-    message: "welcome bhai"
-  });
-});
+//   res.json({
+//     name: "dev",
+//     message: "welcome bhai"
+//   });
+// });
 
 app.post("/users", async (req, res) => {
+  try {
   const user = await User.create({
     name: req.body.name,
     age: req.body.age,
     email: req.body.email
   });
-
   res.json(user);
+  }
+  catch(err){
+    res.status(500).json({
+      message: err.message
+    });
+  }
 });
 //get all user 
 app.get("/users", async(req,res)=>{
@@ -69,10 +86,16 @@ app.get("/users", async(req,res)=>{
   res.json(users);
 
 });
-//getting one user
-app.get("/users/:id", async(req,res)=>{
+//getting one user and now adding error handling too
+
+app.get("/users/:id", async(req,res,next)=>{
+  try{
   const user= await User.findById(req.params.id);
   res.json(user);
+  }
+  catch(err){
+    next(err);
+  }
 });
 
 //update a user by id
@@ -98,7 +121,25 @@ app.delete("/users/:id", async(req,res)=>{
 
 });
 
+//making an error
+// app.get("/test-error", (req, res, next) => {
+//   // const error = new Error("Something broke!");
 
+//   next(new Error ("smth is brokee hahah"));
+// });
+
+
+//error handlerr
+app.use((err, req, res, next)=> {
+
+  console.log(err);
+  res.status(500).json({
+    message: err.message
+  });
+
+
+
+}); 
 
 
 app.listen(3000, () => {
