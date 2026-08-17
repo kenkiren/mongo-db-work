@@ -26,6 +26,48 @@ const app=express();
 // }
 
 // app.use(logger);
+
+
+
+//authenticaion middlewareeeee.
+
+function authenticate(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({
+      message: "No token provided"
+    });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
+    req.user = decoded;
+
+    next();
+  } catch (err) {
+    return res.status(401).json({
+      message: "Invalid token"
+    });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
 app.use(express.json());
 
 
@@ -189,8 +231,17 @@ app.post("/login", async (req,res,next)=>{
 });
 
 
+//exmple for checking working of authentication middlware
+app.get("/profile", authenticate, async (req, res) => {
+  const user = await User.findById(req.user.userId);
 
-
+  res.json({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    age: user.age
+  });
+});
 
 
 //making an error
