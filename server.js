@@ -1,7 +1,8 @@
 import express from "express";
 import mongoose from "mongoose";
 import "dotenv/config";
-
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const app=express();
 
@@ -50,6 +51,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     // match: /.+\@.+\..+/
+  },
+  password:{
+    type: String,
+    required: true
   }
 });
 
@@ -121,6 +126,73 @@ app.delete("/users/:id", async(req,res)=>{
 
 });
 
+
+
+//our register post route.
+app.post("/register", async (req, res,next) => {
+  try{
+
+    const {name,age,email,password}= req.body;
+    const hashpass=await bcrypt.hash(password,10);
+    const user=await User.create({
+      name,
+      age,
+      email,
+      password: hashpass
+    });
+
+    res.status(201).json({
+      message:" user resgisterd",
+      user
+    });
+  }catch (err){
+    next(err);
+  }
+});
+
+
+//our login route. 
+
+app.post("/login", async (req,res,next)=>{
+
+  try{
+    const{email, password}= req.body;
+
+    const user = await User.findOne({email});
+    if(!user){
+      return res.status(401).json({
+        message: " Invalid email or pass"
+      });
+    }
+    const passMatch= await bcrypt.compare(
+      password,
+      user.password
+    );
+
+    if(!passMatch){
+      return res.status(401).json({
+        message: "invalid email or pass"
+      });
+    }
+    const token = jwt.sign(
+      {userId: user.id},
+      process.env.JWT_SECRET,
+      {expiresIn: "1h"}
+    );
+    res.json({
+      message: "login done",
+      token
+    });
+  } catch(err){
+    next(err);
+  }
+});
+
+
+
+
+
+
 //making an error
 // app.get("/test-error", (req, res, next) => {
 //   // const error = new Error("Something broke!");
@@ -140,6 +212,16 @@ app.use((err, req, res, next)=> {
 
 
 }); 
+
+// just checking if bcrypt is working or not.
+// const password = "hello123";
+
+// const hashedPassword = await bcrypt.hash(password, 10);
+
+// console.log(hashedPassword);
+
+
+
 
 
 app.listen(3000, () => {
